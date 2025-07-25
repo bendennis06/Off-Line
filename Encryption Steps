@@ -1,0 +1,181 @@
+1. Symmetric Encryption (AES)
+Why: It’s fast and used to encrypt the actual messages after keys are exchanged.
+Learn:
+
+
+AES (Advanced Encryption Standard): Modes like CBC, GCM (GCM is preferred for authenticated encryption).
+
+
+IVs (Initialization Vectors): What they are, how to generate and transmit them securely.
+
+
+Padding schemes (PKCS7, etc.).
+
+
+Encryption and decryption using AES in Android (e.g., with javax.crypto or Cipher classes).
+
+
+
+🔑 2. Asymmetric Encryption & Key Exchange
+Why: You can’t pre-share keys, so you’ll use asymmetric methods to securely exchange the AES key.
+Learn:
+
+
+ECDH (Elliptic Curve Diffie-Hellman): More efficient and mobile-friendly than RSA for key exchange.
+
+
+Key pair generation (public/private)
+
+
+Secure key agreement (using ECDH to generate a shared secret).
+
+
+RSA (as a backup, or for digital signatures).
+
+
+How Android supports ECDH (KeyAgreement class).
+
+
+
+🔐 3. End-to-End Encryption (E2EE) Basics
+Why: You’re building a secure messenger. Learn what makes encryption “end-to-end.”
+Learn:
+
+
+Trust model: Devices should authenticate each other (optionally use device ID or QR codes).
+
+
+Forward secrecy: Optional, but learn why it matters (you might use ephemeral keys in advanced versions).
+
+
+Secure key storage (e.g., Android Keystore).
+
+
+
+🗃️ 4. Message Authentication
+Why: Encryption isn't enough — you must also ensure messages aren't tampered with.
+Learn:
+
+
+HMAC (Hash-based Message Authentication Code)
+
+
+AES-GCM (includes authentication in one go — recommended)
+
+
+Signing messages (optional but good for verifying identity).
+
+
+
+📱 5. Android-Specific Crypto APIs
+Why: You’re working on Android — understand what’s available and safe.
+Learn:
+
+
+javax.crypto for AES
+
+
+KeyPairGenerator and KeyAgreement for ECDH
+
+
+Android Keystore for storing private keys
+
+
+How to avoid insecure APIs (like ECB mode or broken random number generators)
+
+
+
+⚠️ 6. Common Security Pitfalls
+Why: Many DIY apps get encryption mostly right but leave dangerous gaps.
+Learn:
+
+
+Never hardcode keys
+
+
+Don’t reuse IVs
+
+
+Don’t rely only on obscurity (e.g., Bluetooth pairing is not encryption)
+
+
+Always use cryptographically secure random number generators
+Summary: What to Learn First
+Priority
+Topic
+Why It Matters
+⭐⭐⭐
+AES encryption + IVs
+Encrypt the message payload
+⭐⭐⭐
+ECDH key exchange
+Securely establish AES keys
+⭐⭐
+HMAC or AES-GCM
+Ensure authenticity & integrity
+⭐⭐
+Android crypto APIs
+Actually implement on Android
+⭐
+RSA basics
+Backup for key exchange or signing
+
+
+
+
+
+MY NOTES: 
+What is Asymmetric and Symmetric Encryption?
+Symmetric = same key can decrypt and encrypt
+Asymmetric = one key to decrypt and one to encrypt, usually a key pairing of a public key and a private key
+Hybrid Encryption = Asymmetric to facilitate a key exchange, Secret Key used with Symmetric Encryption for Bulk Data
+
+Examples:
+Jim wants to send a message to Pam, Jim can encrypt his message with Pam's public key and since she has the private key she is the only one that can decrypt it  
+To prove you were the one that sent a certain thing, you can use your private key to encrypt it so that others can use your own public key to decrypt it, proving it was you. In doing this it also proves that the message was not messed with in transit because if it was, using the public key would get you a mess compared to the original message ‘
+Pam generates a Symmetric Secret Key which she encrypts with Jim’s public key, meaning the only key in the world that can decrypt it would be Jim’s private key, Pam can send it over to Jim to decrypt meaning they both now have Symmetric Keys they can use, combining both Symmetric and Asymmetric Encryption. This is Hybrid Encryption
+
+Hybrid Encryption is where the sender generates a symmetric key that they use to encrypt their message and sends over said other key but encrypts it with the receivers public key so they can decrypt it with their private key and get the same key that they can encrypt and decrypt messages with 
+Steps for Full Hybrid Encryption: (different from regular way)
+For this type of encryption both sides have their own key pairs adn they exchange their public keys where they use ECDH to generate the same shared secret symmetric key
+1. Key exchange
+## EC stands for Eliptic Curve and this is used to make keys, gives a key generator that uses Eliptic Curve math
+KeyPairGenerator kpg = KeyPairGenerator.getInstance(“EC”)
+## secp256r1 is a specific curve that is part of EC to make keys
+kpg.initialize(new ECGenParamterSpec(“secp256r1”));
+
+## This is used to actually make the key pair itself where one is private and one is public
+KeyPair myKeyPair = kpg.generateKeyPair();
+
+## ECDH makes it so that two devices can create a secret key together without having to use the internet, so this gives the methods that can help perform the ECDH key agreement
+KeyAgreement ka = KeyAgreement.getInstance(“ECDH”)
+
+## basically loads your private key into the tool so that you can agree on a shared secret key
+ka.init(myKeyPair.getPrivate())
+
+## Uses other persons public key to get the shared secret (combines your private and their public and vice versa)
+ka.doPhase(theirPublicKey, true);
+
+## generates secret shared key between the two people
+byte[] sharedSecret = ka.generateSecret();
+
+
+
+
+2. Symmetric Key Derivation
+Symmetric Key derivation is the process of turning shared secret data into a symmetric key that both sides can use for encryption and decryption; this basically creates a key from the shared secret key that is good quality for encryption and decryption
+## gets a tool that can make a SHA-256 hash which turns input into a 256 bit fixed string of data
+MessageDigest sha256 = MessageDigest.getInstance(“SHA-256”);
+
+## turns the shared key into a hashed key, making sure the key looks random so that the key can't be guessed or predicted and is the right size so that encryption algorithms like AES can work well on it
+byte[] hashedKey = sha256.digest(sharedSecret)
+
+## Take the first 16 bytes from said hashed key as AES uses 16 bytes
+byte[] AESKetBytes = Arrays.copyOf(hashedKey,16)
+
+## basically makes the key object an AES key so that the encryption tool knows its an AES key
+SecretKeySpec AESKey = new SecretKeySpec(AESKeyBytes, “AES”)
+
+3. AES Encryption/Decryption
+
+
