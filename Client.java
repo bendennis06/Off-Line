@@ -1,25 +1,54 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Client {
     public static void main(String[] args) throws IOException{
-        Socket socket = new Socket();
-        socket.connect(new InetSocketAddress("127.0.0.1",5001),1000);
-        System.out.println("Connection succeful");
+        Socket socket = null;
+        InputStreamReader inputStreamReader = null;
+        OutputStreamWriter outputStreamWriter = null;
+        BufferedReader bufferedReader = null;
+        BufferedWriter bufferedWriter = null;
+        ServerSocket serverSocket = null;
 
-        //passing and recieving messages
-        DataInputStream dataIn = new DataInputStream(socket.getInputStream());
-        DataOutputStream dataOut = new DataOutputStream(socket.getOutputStream());
-        dataOut.writeUTF("Hi this is cumming from the client");
-        String serverMessage = dataIn.readUTF();
-        System.out.println(serverMessage);
+        serverSocket = new ServerSocket(5001);
 
-        dataIn.close();
-        dataOut.close();
-        socket.close();
+        while (true){
+
+            try{
+
+                socket = serverSocket.accept();
+
+                inputStreamReader = new InputStreamReader(socket.getInputStream());
+                outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+
+                bufferedReader = new BufferedReader(inputStreamReader);
+                bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+                while(true){
+                    String msgFromClient = bufferedReader.readLine();
+
+                    System.out.println("Client: "+ msgFromClient);
+
+                    bufferedWriter.write("message recieved");
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+
+                    if (msgFromClient.equalsIgnoreCase("BYE"))
+                        break;
+                }
+
+                socket.close();
+                inputStreamReader.close();
+                outputStreamWriter.close();
+                bufferedWriter.close();
+                bufferedReader.close();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+
+        }
 
     }
 }

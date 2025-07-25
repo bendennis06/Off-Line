@@ -1,29 +1,56 @@
 import java.net.*;
 import java.io.*;
+import java.util.Scanner;
 
 //TCP server
 public class Main {
     public static void main(String[] args) throws IOException {
-    //create a socket named socket
-        ServerSocket serverSocket = new ServerSocket(5001);
-        System.out.println("Listening for clients...");
-        Socket clientSocket = serverSocket.accept();
-        String clientSocketIP = clientSocket.getInetAddress().toString();
-        int clientSocketPort = clientSocket.getPort();
-        System.out.println("[IP: " + clientSocketIP + " ,port: " + clientSocketPort + "] Client connected");
+        Socket socket = null;
+        InputStreamReader inputStreamReader = null;
+        OutputStreamWriter outputStreamWriter = null;
+        BufferedReader bufferedReader = null;
+        BufferedWriter bufferedWriter = null;
 
-        DataInputStream dataIn = new DataInputStream(clientSocket.getInputStream());
-        DataOutputStream dataOut = new DataOutputStream(clientSocket.getOutputStream());
+        try {
+            socket = new Socket("localhost", 5001);
 
-        String clientMessage = dataIn.readUTF();
-        System.out.println(clientMessage);
-        String serverMessage = "This is cumming from server";
-        dataOut.writeUTF(serverMessage);
+            inputStreamReader = new InputStreamReader(socket.getInputStream());
+            outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
 
-        dataIn.close();
-        dataOut.close();
-        serverSocket.close();
-        clientSocket.close();
+            bufferedReader = new BufferedReader(inputStreamReader);
+            bufferedWriter = new BufferedWriter(outputStreamWriter);
 
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                String msgToSend = scanner.nextLine();
+                bufferedWriter.write(msgToSend);
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+
+                System.out.println("Server: " + bufferedReader.readLine());
+
+                if (msgToSend.equalsIgnoreCase("BYE"))
+                    break;
+            }
+
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally {
+            try{
+                if(socket != null)
+                    socket.close();
+                if(inputStreamReader != null)
+                    inputStreamReader.close();
+                if(outputStreamWriter != null)
+                    outputStreamWriter.close();
+                if(bufferedReader != null)
+                    bufferedReader.close();
+                if(bufferedWriter != null)
+                    bufferedWriter.close();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
         }
     }
