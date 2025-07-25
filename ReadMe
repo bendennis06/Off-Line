@@ -1,0 +1,44 @@
+psduocode for the algorithm:
+
+func join(){
+turn <- rand(send_rate) //pick random start time offset to avoid synched broadcasts
+}
+
+func send(Pkr, message){
+CT <- E(PKr, message)    //encrypt message with recipients public key (PKr)
+DS.add(CT)                //add cypher text to the DS
+broadcast(CT)
+}
+
+func recieve(message){
+if(message not in DS)           //if its new to us
+    DS.add(message, curr_time))     //add to our digest with current time
+    PT <- D(SK, message)            //try decrypting it with secret key
+    if(PT != (decoded_message))     //if succeeds(not garbage)
+        (message, sender) <- PT        //extract plain info and message sender
+        return(message, sender)             //return both
+}
+
+func main(PKr){
+    if ((curr_time - turn) % send_rate == 0) //is it time to send a message?
+        if(HAS_SEND)                            //should it send real msg or dummy message?
+            send(PKr, message)                     //if yes, adds to DS
+        else:
+            send(PKdummy, 0)
+    if((curr_time - turn) % DSshare == 0) //time to broadcast?
+        broadcast((PKs, DScompact))
+    if(DS_ARRIVED)
+        request <- diff(DSother, DS)        //compare DS
+        broadcast(("request", request))       //broadcast request for mising message
+    if(OUTSTANDING_REQUESTS)                  //if made request but no response
+        indices <- union(requests)              //merge all outstanding requests into one set of indices
+        for(i in indices)
+            broadcast(DScompact[i])             //send each requested message to the network
+    if(MESSAGE_RECIEVED)
+        recieve(message)                //process the message
+    for((message, time) in DS)          //clean up old messages
+        if(curr_time - time > time_to_keep)
+            DS.remove((message, time))  //remove it
+
+
+}
