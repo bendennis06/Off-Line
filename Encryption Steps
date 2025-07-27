@@ -54,6 +54,59 @@ byte[] AESKetBytes = Arrays.copyOf(hashedKey,16)
 ## basically makes the key object an AES key so that the encryption tool knows its an AES key
 SecretKeySpec AESKey = new SecretKeySpec(AESKeyBytes, “AES”)
 
-3. AES Encryption/Decryption
+3. AES Encryption
+## This would get a cipher tool that uses AES encryption with GCM mode. GCM stands for Galois/Counter Mode; way of using AES that brings about Confidentiality and Authentication because GCM encrypts and checks for integrity
+Cipher cipher = Cipher.getInstance(“AES/GCM/NoPadding”);
+
+## This would create a key object from the raw AES key made earlier so that the AES cipher can actually use it 
+SecretKeySpec keySpec = newSecretKeySpec(key, “AES”)
+
+## This sets up the parameters for GCM mode which includes a 128-bit authentication tag and the initialization vector. Tag is added to message to show that nothing was tampered with and the initialization vector ensures the encryption result is unique 
+GCMParameterSpec gcmSPEC = new GCMParameterSpec(128, iv)
+
+## gets your cipher object and gets it ready for encryption using the key and settings given to it. (steps before) Encrypt_MODE tells it it is encrypting, keySpec is the key object you created and gcmSpec is the settings you used which are the authentication tag and the Initialization Vector
+cipher.init(Cipher.Encrypt_MODE, keySpec, gcmSpec);
+
+## Encrypt the plaintext string and return the ciphertext bytes . plaintext.getBytes turns the message into raw bytes then cipher.doFinal runs them through the AES encryption, scrambling them with your AES key and the IV
+return cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+
+
+
+3. AES Encryption
+## This would get a cipher tool that uses AES encryption with GCM mode. GCM stands for Galois/Counter Mode; way of using AES that brings about Confidentiality and Authentication because GCM encrypts and checks for integrity
+Cipher cipher = Cipher.getInstance(“AES/GCM/NoPadding”);
+
+## This would create a key object from the raw AES key made earlier so that the AES cipher can actually use it 
+SecretKeySpec keySpec = newSecretKeySpec(key, “AES”)
+
+## This sets up the parameters for GCM mode which includes a 128-bit authentication tag and the initialization vector. Tag is added to message to show that nothing was tampered with and the initialization vector ensures the encryption result is unique 
+GCMParameterSpec gcmSPEC = new GCMParameterSpec(128, iv)
+
+## gets your cipher object and gets it ready for encryption using the key and settings given to it. (steps before) Encrypt_MODE tells it it is encrypting, keySpec is the key object you created and gcmSpec is the settings you used which are the authentication tag and the Initialization Vector
+cipher.init(Cipher.Encrypt_MODE, keySpec, gcmSpec);
+
+## Encrypt the plaintext string and return the ciphertext bytes . plaintext.getBytes turns the message into raw bytes then cipher.doFinal runs them through the AES encryption, scrambling them with your AES key and the IV
+return cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+
+
+
+3. AES Decryption
+## gets a tool that uses AES decryption with GCM mode 
+Cipher cipher = Cipher.getInstance(“AES/GCM/NoPadding)
+
+## uses the raw AES shared bytes you created and creates a key from it
+SecretKeySpec keySpec = newSecretKeySpec(key, “AES)
+
+## sets parameters in the GCM mode like we did for the Encrypting
+GCMParamterSpec gcmSpec = new GCMParameterSpec(128, iv)
+
+## puts the cipher into decrypt mode with the key given and the settings that you set up
+cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmSpec)
+
+## this decrypts the ciphertext bytes back into plain text bytes
+byte[] decrypted = cipher.doFinal(ciphertext);
+
+## turn said bytes into a string that you are able to read then return it
+return new String(decrypted, StandardCharsets.UTF_8);
 
 
