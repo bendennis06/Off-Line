@@ -1,54 +1,36 @@
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
+import java.util.*;
 
-public class Client {
-    public static void main(String[] args) throws IOException{
-        Socket socket = null;
-        InputStreamReader inputStreamReader = null;
-        OutputStreamWriter outputStreamWriter = null;
-        BufferedReader bufferedReader = null;
-        BufferedWriter bufferedWriter = null;
-        ServerSocket serverSocket = null;
+ class Client {
+    public static void main(String[] args) throws IOException {
 
-        serverSocket = new ServerSocket(5001);
+        try(Socket socket = new Socket("localhost", 5001)){
+            //writing to server
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-        while (true){
+            //reading from server
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            try{
+            Scanner scnr = new Scanner(System.in);
+            String line = null;
 
-                socket = serverSocket.accept();
+            while(!"exit".equalsIgnoreCase(line)){
+                line = scnr.nextLine();
 
-                inputStreamReader = new InputStreamReader(socket.getInputStream());
-                outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+                //sending user input to the server
+                out.println(line);
+                out.flush();
 
-                bufferedReader = new BufferedReader(inputStreamReader);
-                bufferedWriter = new BufferedWriter(outputStreamWriter);
-
-                while(true){
-                    String msgFromClient = bufferedReader.readLine();
-
-                    System.out.println("Client: "+ msgFromClient);
-
-                    bufferedWriter.write("message recieved");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-
-                    if (msgFromClient.equalsIgnoreCase("BYE"))
-                        break;
-                }
-
-                socket.close();
-                inputStreamReader.close();
-                outputStreamWriter.close();
-                bufferedWriter.close();
-                bufferedReader.close();
-            } catch (IOException e){
-                e.printStackTrace();
+                //print user input
+                System.out.println("Server replied: " + in.readLine());
             }
 
-        }
+            scnr.close();
 
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 }
